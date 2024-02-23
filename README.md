@@ -2,7 +2,7 @@
 Script for parsing Fedora countme data
 
 ```
-usage: countme_parse.py [-h] [-d DIR] [-u] [-a] variant
+usage: main.py [-h] [-d DIR] [-u] [-a] variant
 
 positional arguments:
   variant            Name of the os_variant to query
