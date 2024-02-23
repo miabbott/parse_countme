@@ -3,17 +3,18 @@
 # Script for parsing Fedora countme data
 # Originally implemented in bash by @travier
 
-from contextlib import closing
-from datetime import datetime
-from tqdm import tqdm
 import argparse
 import os
 import os.path
 import re
-import requests
 import sqlite3
 import sys
 import time
+from contextlib import closing
+from datetime import datetime
+
+import requests
+from tqdm import tqdm
 
 
 # https://github.com/fedora-infra/mirrors-countme/blob/039f453998711fa360dd5ecc882eb87df9e45d2b/mirrors_countme/constants.py
@@ -30,7 +31,7 @@ TOTALSDB_URL = "https://data-analysis.fedoraproject.org/csv-reports/countme/tota
 # download totals.db to directory
 def download_stats(totals_db_path, update=False):
     if not os.path.exists(totals_db_path) or update:
-        req = requests.get(TOTALSDB_URL, stream=True)
+        req = requests.get(TOTALSDB_URL, stream=True, timeout=60)
 
         total_size = int(req.headers.get("content-length", 0))
         block_size = 1024
