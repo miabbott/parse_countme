@@ -1,4 +1,7 @@
 # parse_countme
+
+![Pylint](https://github.com/miabbott/parse_countme/actions/workflows/pylint.yml/badge.svg)
+
 Script for parsing Fedora countme data
 
 ```
