@@ -68,7 +68,7 @@ def query_db(db_file, variant, alltime=False):
         ya_sql_addition = f"AND weeknum > {year_ago_weeknum}"
 
     # number of instances either all time or from the last year
-    num_instance_sql = f"SELECT weeknum, SUM(hits) FROM countme_totals WHERE os_variant IS '{variant}' AND repo_tag REGEXP 'updates-released-f[3-4][0-9]' AND sys_age > 1 {ya_sql_addition if not alltime else ""} GROUP BY weeknum"
+    num_instance_sql = f"SELECT weeknum, SUM(hits) FROM countme_totals WHERE os_variant IS '{variant}' AND repo_tag REGEXP 'updates-released-f[3-4][0-9]' AND sys_age > 1 {ya_sql_addition if not alltime else ''} GROUP BY weeknum"
     # number of instances per version for the last week
     num_instance_per_version_sql = f"SELECT os_version, SUM(hits) FROM countme_totals WHERE os_variant IS '{variant}' AND repo_tag REGEXP 'updates-released-f[3-4][0-9]' AND sys_age > 1 AND weeknum = (SELECT MAX(weeknum) FROM countme_totals) GROUP BY os_version ORDER BY os_version"
     # number of instances per arch for the last week
