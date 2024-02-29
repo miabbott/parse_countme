@@ -4,6 +4,7 @@
 # Originally implemented in bash by @travier
 
 import argparse
+import csv
 import os
 import os.path
 import re
@@ -55,8 +56,9 @@ def make_weeknum(timestamp):
     return (int(timestamp) - COUNTME_EPOCH) // WEEK_LEN
 
 
+# TODO: separate this function into a query-only function and a CSV writing function
 # run the queries against totals.db
-def query_db(db_file, variant, alltime=False):
+def query_db(db_file, variant, output_path, alltime=False):
     # https://gist.github.com/eestrada/fd55398950c6ee1f1deb
     def regexp(y, x, search=re.search):
         return 1 if search(y, x) else 0
@@ -74,38 +76,51 @@ def query_db(db_file, variant, alltime=False):
     # number of instances per arch for the last week
     num_instances_per_arch_sql = f"SELECT os_variant, repo_arch, SUM(hits) FROM countme_totals WHERE os_variant IS '{variant}' AND repo_tag REGEXP 'updates-released-f[3-4][0-9]' AND sys_age > 1 AND weeknum = (SELECT MAX(weeknum) FROM countme_totals) GROUP BY repo_arch ORDER BY repo_arch"
 
-    with closing(sqlite3.connect(db_file)) as connection:
-        connection.create_function('regexp', 2, regexp)
-        cursor = connection.cursor()
-        rows = cursor.execute(num_instance_sql).fetchall()
-        print(rows)
-        rows = cursor.execute(num_instance_per_version_sql).fetchall()
-        print(rows)
-        rows = cursor.execute(num_instances_per_arch_sql).fetchall()
-        print(rows)
+    with open(output_path, "w", encoding="utf-8") as output_f:
+        csvwriter = csv.writer(output_f)
+        csvwriter.writerow([f'+++{variant.upper()}+++'])
+        with closing(sqlite3.connect(db_file)) as connection:
+            connection.create_function('regexp', 2, regexp)
+            cursor = connection.cursor()
+            rows = cursor.execute(num_instance_sql).fetchall()
+            csvwriter.writerow(['weeknum', 'SUM(hits)'])
+            for row in rows:
+                csvwriter.writerow(row)
+            rows = cursor.execute(num_instance_per_version_sql).fetchall()
+            csvwriter.writerow(['osversion', 'SUM(hits)'])
+            for row in rows:
+                csvwriter.writerow(row)
+            rows = cursor.execute(num_instances_per_arch_sql).fetchall()
+            csvwriter.writerow(['osvariant', 'repo_arch', 'SUM(hits)'])
+            for row in rows:
+                csvwriter.writerow(row)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('variant', help="Name of the os_variant to query")
-    parser.add_argument('-d', '--dir', help="Directory to download totals.db; defaults to $CWD")
-    parser.add_argument('-u', '--update', action="store_true", help="Force update of totals.db")
     parser.add_argument('-a', '--all', action="store_true", help="Query stats from all time; default is last year")
+    parser.add_argument('-d', '--dir', default=os.getcwd(), help="Directory to download totals.db and write out CSV file; defaults to $CWD")
+    parser.add_argument('-o', '--output', default="stats.csv", help="Filename to write results in CSV format; defaults to 'stats.csv'")
+    parser.add_argument('-u', '--update', action="store_true", help="Force update of totals.db")
     args = parser.parse_args()
 
-    if args.dir is None:
-        stats_dir = os.getcwd()
-    else:
+    if args.dir is not None:
         stats_dir = args.dir
 
     totals_db_path = os.path.join(stats_dir, TOTALSDB_FILENAME)
+
+    if args.output is not None:
+        csv_file = args.output
+
+    csv_path = os.path.join(stats_dir, csv_file)
 
     if args.update:
         download_stats(totals_db_path, update=True)
     else:
         download_stats(totals_db_path)
 
-    query_db(totals_db_path, args.variant, args.all)
+    query_db(totals_db_path, args.variant, csv_path, args.all)
 
 
 if __name__ == '__main__':
