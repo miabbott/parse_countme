@@ -19,11 +19,11 @@ from tqdm import tqdm
 
 
 # https://github.com/fedora-infra/mirrors-countme/blob/039f453998711fa360dd5ecc882eb87df9e45d2b/mirrors_countme/constants.py
-DAY_LEN = 24 * 60 * 60  # seconds in a day
-WEEK_LEN = 7 * DAY_LEN  # seconds in a week
+DAY_LEN = 24 * 60 * 60  # seconds in a day (86400)
+WEEK_LEN = 7 * DAY_LEN  # seconds in a week (604800)
 COUNTME_EPOCH = 345600  # unix epoch: 1970-01-04
 
-YEAR_LEN = 365 * DAY_LEN  # seconds in a year
+YEAR_LEN = 365 * DAY_LEN  # seconds in a year (220752000)
 
 TOTALSDB_FILENAME = "totals.db"
 TOTALSDB_URL = "https://data-analysis.fedoraproject.org/csv-reports/countme/totals.db"
